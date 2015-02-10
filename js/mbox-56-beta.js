@@ -2048,7 +2048,7 @@ TNT.createGlobalMbox = function () {
   var _globalMboxName = TNT.getGlobalMboxName();
   var _clientCode = TNT._internal._settings.clientCode;
   var _urlBuilder = mboxFactoryDefault.getUrlBuilder().clone();
-  var _fetcher = new mboxAjaxFetcher();
+  var _fetcher = new mboxStandardFetcher();
 
   _urlBuilder.setBasePath('/m2/' + _clientCode + '/viztarget');
   _urlBuilder.addParameter(TNT._internal._params._count, 0);
