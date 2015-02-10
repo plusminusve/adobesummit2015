@@ -1968,7 +1968,42 @@ mboxScreenColorDepth = function() {
   return screen.pixelDepth;
 };
 
+TNT._internal._disableExperienceManagerAndReload = function(_win, _atObj, _cookieName, _duration, _cookieManager) {
+  if (!_atObj.targetJSLoaded) {
+    _cookieManager.setCookie(_cookieName, true, _duration);
+    _win.location.reload();
+  }
+};
 
+TNT._internal._initExperienceManager = function(_win, _doc, _settings, _cookies, _cookieManager) {
+  var _AT_KEY = '_AT';
+  var _RETRY = 50;
+  var _cookieName = _cookies._experienceManagerDisabled;
+  var _duration = _settings.experienceManagerDisabledTimeout;
+  var _timeout = _settings.experienceManagerTimeout;
+  var _url = _settings.experienceManagerPluginUrl;
+  var _delayFunc = _win.setTimeout;
+  var _emptyFunc = function(_actions){};
+  var _dummyFunc = function(_actions){ _delayFunc(function() {_win[_AT_KEY].applyWhenReady(_actions);}, _RETRY); };
+
+  if (_AT_KEY in _win) {
+    return;
+  }
+
+  _win[_AT_KEY] = {};
+
+  if (_cookieManager.getCookie(_cookieName) !== 'true') {
+    _doc.write('<scr' + 'ipt src="' + _url + '"><\/sc' + 'ript>');
+
+    _win[_AT_KEY].applyWhenReady = _dummyFunc;
+
+    _delayFunc(function() {
+      TNT._internal._disableExperienceManagerAndReload(_win, _win[_AT_KEY], _cookieName, _duration, _cookieManager);
+    }, _timeout);
+  } else {
+    _win[_AT_KEY].applyWhenReady = _emptyFunc;
+  }
+};
 
 mboxVizTargetUrl = function(_mboxName /*, ... */) {
   if (!mboxFactoryDefault.isEnabled()) {
