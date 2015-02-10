@@ -2098,7 +2098,13 @@ TNT._internal._bootstrap = function() {
 
 TNT._internal._bootstrap();
 
+(function(){
+  var _settings = TNT._internal._settings;
+  var _cookies = TNT._internal._cookies;
+  var _cookieManager = mboxFactoryDefault.getCookieManager();
 
+  TNT._internal._initExperienceManager(window, document, _settings, _cookies, _cookieManager);
+}());
 
 TNT._internal._settings.clientJavascriptFunction();
 
