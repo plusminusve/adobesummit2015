@@ -241,19 +241,6 @@ TNT._internal._extractParamsFromObject = function (_obj, _keys) {
   return _result;
 };
 
-TNT._internal._globalMboxFetcher = function() { };
-
-TNT._internal._globalMboxFetcher.prototype.getType = function() {
-  return 'ajax';
-};
-
-TNT._internal._globalMboxFetcher.prototype.fetch = function(_urlBuilder) {
-  _urlBuilder.setServerType(this.getType());
-  document.write('<' + 'scr' + 'ipt src="' + _urlBuilder.buildUrl() +'"><' + '\/scr' + 'ipt>');
-};
-
-TNT._internal._globalMboxFetcher.prototype.cancel = function() { };
-
 /**
  * Builds the url of a request given the mbox server host, client code
  * and server type.
@@ -2024,9 +2011,11 @@ TNT.createGlobalMbox = function () {
   var _now = new Date();
   var _time = _now.getTime() - (_now.getTimezoneOffset() * TNT._internal._constants._millisInMinute);
   var _globalMboxName = TNT.getGlobalMboxName();
+  var _clientCode = TNT._internal._settings.clientCode;
   var _urlBuilder = mboxFactoryDefault.getUrlBuilder().clone();
   var _fetcher = new mboxAjaxFetcher();
 
+  _urlBuilder.setBasePath('/m2/' + _clientCode + '/viztarget');
   _urlBuilder.addParameter(TNT._internal._params._count, 0);
   _urlBuilder.addParameter(TNT._internal._params._time, _time);
   _urlBuilder.addParameter(TNT._internal._params._mboxName, _globalMboxName);
