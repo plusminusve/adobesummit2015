@@ -365,17 +365,12 @@
 	}
 
     function hashCode(s) {
-      var hash = 0,
-		strlen = s.length,
-		i,
-		c;
-		if ( strlen === 0 ) {
-		return hash;
-		}
-		for ( i = 0; i < strlen; i++ ) {
-		c = s.charCodeAt( i );
-		hash = ((hash << 5) – hash) + c;
-		hash = hash & hash; // Convert to 32bit integer
+	    var hash = 0;
+		if (this.length == 0) return hash;
+		for (i = 0; i < this.length; i++) {
+			char = this.charCodeAt(i);
+			hash = ((hash<<5)-hash)+char;
+			hash = hash & hash; // Convert to 32bit integer
 		}
 		return hash;
     };
