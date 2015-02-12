@@ -2,10 +2,12 @@ package com.example.scoroi.adobesummit;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.graphics.Point;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,8 +16,23 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.AutoCompleteTextView;
 
+import com.adobe.mobile.Config;
+import com.adobe.mobile.Target;
+import com.adobe.mobile.TargetLocationRequest;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 
 public class TargetExperience extends Activity {
+
+    private static final String MIME_TYPE = "text/html";
 
     private WebView targetExperienceWebView;
 
@@ -24,38 +41,52 @@ public class TargetExperience extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_target_experience);
 
-        targetExperienceWebView = (WebView) findViewById(R.id.targetExperienceWebView);
-        //targetExperienceWebView.loadUrl("http://google.com");
-        targetExperienceWebView.setWebViewClient(new WebViewClient());
+        Properties appProperties;
+        try {
+            appProperties = getProperties(this.getAssets());
+        } catch (IOException e) {
+            Log.e("app", "Unable to read properties", e);
+            return;
+        }
 
-        targetExperienceWebView.setPadding(0, 0, 0, 0);
-        targetExperienceWebView.setInitialScale(getScale());
+        Config.setContext(this.getApplicationContext());
+        Config.setDebugLogging(true);
 
-        String mbox3rdPartyId = getIntent().getExtras().getString(Constants.MBOX_THIRD_PARTY_ID);
+        createTargetExperienceView();
 
-        String html = "<section>\n" +
-                "\t\t\t\t\t\t\t\t\t<a href=\"#\" class=\"image featured\"><img src=\"images/fiji.jpg\" alt=\"\"></a>\n" +
-                "\t\t\t\t\t\t\t\t\t<header>\n" +
-                "\t\t\t\t\t\t\t\t\t\t<h3>Fiji is never a bad idea</h3>\n" +
-                "\t\t\t\t\t\t\t\t\t</header>\n" +
-                "\t\t\t\t\t\t\t\t\t<p>We travel not to escape life, but for life not to escape us. This <a href=\"https://www.adobe.com/solutions/testing-targeting.html#\">release</a> is all about features and productivity. Target makes it easy for you to create personalized digital experiences that deliver real results and revenue.\t\t\t\t\t\t\t\n" +
-                "\t\t\t\t\t\t\t\t</p></section>" + mbox3rdPartyId.hashCode();
-        String mime = "text/html";
-        String encoding = "utf-8";
-
-
-        targetExperienceWebView.getSettings().setJavaScriptEnabled(true);
-        targetExperienceWebView.loadDataWithBaseURL("http://scoroi.github.io/adobesummit2015/", html, mime, encoding, null);
-
-
+        fetchAndSetExperience(appProperties);
     }
 
-    private int getScale() {
-        DisplayMetrics display = this.getResources().getDisplayMetrics();
-        int width = display.widthPixels;
-        Double val = width / 400D;
-        val = val * 100d;
-        return val.intValue();
+    private void fetchAndSetExperience(Properties appProperties) {
+        Target.clearCookies();
+
+        final String url = appProperties.getProperty("url");
+        String mbox = appProperties.getProperty("mbox");
+        String nativeAppMboxParameter = appProperties.getProperty("nativeAppMboxParameter");
+
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put(nativeAppMboxParameter, "true");
+        parameters.put("mbox3rdPartyId", getMbox3rdPartyId());
+
+        TargetLocationRequest locationRequest = Target.createRequest(mbox, url, parameters);
+
+        final TargetExperience targetExperience = this;
+        Target.loadRequest(locationRequest, new Target.TargetCallback<String>() {
+            @Override
+            public void call(final String content) {
+                targetExperience.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        targetExperienceWebView
+                            .loadDataWithBaseURL(url, content, MIME_TYPE, UTF_8.name(), null);
+                    }
+                });
+            }
+        });
+    }
+
+    private Integer getMbox3rdPartyId() {
+        return getIntent().getExtras().getInt(Constants.MBOX_THIRD_PARTY_ID);
     }
 
     @Override
@@ -78,5 +109,28 @@ public class TargetExperience extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void createTargetExperienceView() {
+        targetExperienceWebView = (WebView) findViewById(R.id.targetExperienceWebView);
+        targetExperienceWebView.setWebViewClient(new WebViewClient());
+
+        targetExperienceWebView.setPadding(0, 0, 0, 0);
+        targetExperienceWebView.setInitialScale(getScale());
+    }
+
+    private Properties getProperties(AssetManager assetManager) throws IOException {
+        InputStream propertiesInputStream = assetManager.open("app.properties");
+        Properties appProperties = new Properties();
+        appProperties.load(propertiesInputStream);
+        return appProperties;
+    }
+
+    private int getScale() {
+        DisplayMetrics display = this.getResources().getDisplayMetrics();
+        int width = display.widthPixels;
+        Double val = width / 400D;
+        val = val * 100d;
+        return val.intValue();
     }
 }

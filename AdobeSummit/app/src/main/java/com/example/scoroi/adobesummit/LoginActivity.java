@@ -276,7 +276,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
             }*/
 
             Intent intent = new Intent(context, TargetExperience.class);
-            intent.putExtra(Constants.MBOX_THIRD_PARTY_ID, mEmail);
+            intent.putExtra(Constants.MBOX_THIRD_PARTY_ID, mEmail.hashCode());
             startActivity(intent);
 
             // TODO: register the new account here.
