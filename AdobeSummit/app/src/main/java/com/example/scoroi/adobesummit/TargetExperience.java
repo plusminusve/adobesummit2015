@@ -1,20 +1,16 @@
 package com.example.scoroi.adobesummit;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.res.AssetManager;
-import android.graphics.Point;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.WindowManager;
+import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 
 import com.adobe.mobile.Config;
 import com.adobe.mobile.Target;
@@ -22,7 +18,7 @@ import com.adobe.mobile.TargetLocationRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -35,13 +31,14 @@ public class TargetExperience extends Activity {
     private static final String MIME_TYPE = "text/html";
 
     private WebView targetExperienceWebView;
+    private Button buyNowButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_target_experience);
 
-        Properties appProperties;
+        final Properties appProperties;
         try {
             appProperties = getProperties(this.getAssets());
         } catch (IOException e) {
@@ -54,10 +51,21 @@ public class TargetExperience extends Activity {
 
         createTargetExperienceView();
 
-        fetchAndSetExperience(appProperties);
+        fetchAndSetExperience(appProperties, Collections.<String, Object>emptyMap());
+
+        buyNowButton = (Button) findViewById(R.id.buy_now_button);
+        buyNowButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Map<String, Object> purchaseParameters = new HashMap<>();
+                purchaseParameters.put(appProperties.getProperty("purchaseProfileParameter"), true);
+                fetchAndSetExperience(appProperties, purchaseParameters);
+            }
+        });
     }
 
-    private void fetchAndSetExperience(Properties appProperties) {
+    private void fetchAndSetExperience(Properties appProperties,
+                                       Map<String, Object> additionalParameters) {
         Target.clearCookies();
 
         final String url = appProperties.getProperty("url");
@@ -67,6 +75,9 @@ public class TargetExperience extends Activity {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put(nativeAppMboxParameter, "true");
         parameters.put("mbox3rdPartyId", getMbox3rdPartyId());
+        for (Map.Entry<String, Object> parameterEntry : additionalParameters.entrySet()) {
+            parameters.put(parameterEntry.getKey(), parameterEntry.getValue());
+        }
 
         TargetLocationRequest locationRequest = Target.createRequest(mbox, url, parameters);
 
@@ -78,7 +89,7 @@ public class TargetExperience extends Activity {
                     @Override
                     public void run() {
                         targetExperienceWebView
-                            .loadDataWithBaseURL(url, content, MIME_TYPE, UTF_8.name(), null);
+                                .loadDataWithBaseURL(url, content, MIME_TYPE, UTF_8.name(), null);
                     }
                 });
             }

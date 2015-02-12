@@ -17,4 +17,15 @@
         android:layout_alignParentEnd="false"
         android:layout_alignParentStart="false" />
 
+    <Button
+        style="?android:textAppearanceSmall"
+        android:id="@+id/buy_now_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/action_buy_now"
+        android:textStyle="bold"
+        android:background="@android:color/holo_red_light"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
+
 </RelativeLayout>
