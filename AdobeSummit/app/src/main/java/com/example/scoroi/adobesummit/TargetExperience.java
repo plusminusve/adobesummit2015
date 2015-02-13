@@ -3,19 +3,21 @@ package com.example.scoroi.adobesummit;
 import android.app.Activity;
 import android.content.res.AssetManager;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.adobe.mobile.Config;
 import com.adobe.mobile.Target;
 import com.adobe.mobile.TargetLocationRequest;
 
+import org.apache.commons.lang3.StringUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
@@ -23,15 +25,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
-
 public class TargetExperience extends Activity {
 
-    private static final String MIME_TYPE = "text/html";
-
-    private WebView targetExperienceWebView;
-    private Button buyNowButton;
+    private ImageView experienceImage;
+    private TextView offerName  ;
+    private TextView offerContent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,12 +47,11 @@ public class TargetExperience extends Activity {
         Config.setContext(this.getApplicationContext());
         Config.setDebugLogging(true);
 
-        createTargetExperienceView();
+        initTargetExperienceView();
 
         fetchAndSetExperience(appProperties, Collections.<String, Object>emptyMap());
 
-        buyNowButton = (Button) findViewById(R.id.buy_now_button);
-        buyNowButton.setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.buy_now_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Map<String, Object> purchaseParameters = new HashMap<>();
@@ -88,46 +85,76 @@ public class TargetExperience extends Activity {
                 targetExperience.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        targetExperienceWebView
-                                .loadDataWithBaseURL(url, content, MIME_TYPE, UTF_8.name(), null);
+                        MobilePayload mobilePayload = getMobilePayload(content);
+                        new DownloadImageTask(experienceImage).execute(url + mobilePayload.getImageUrl());
+                        offerName.setText(mobilePayload.getOfferName());
+                        offerContent.setText(mobilePayload.getOfferContent());
                     }
                 });
             }
         });
     }
 
+    private MobilePayload getMobilePayload(String rawResponse) {
+        String json = StringUtils.substringBefore(rawResponse, "-->").replace("<!--", "");
+
+        try {
+            JSONObject payload = new JSONObject(json);
+            String imageUrl = payload.getString("imageUrl");
+            String offerName = payload.getString("offerName");
+            String offerContent = payload.getString("offerContent");
+            return new MobilePayload(imageUrl, offerName, offerContent);
+        } catch (JSONException e) {
+            Log.e("json", "unable to parse json", e);
+        }
+        return new MobilePayload("", "Native mobile", "Unable to load offerContent");
+    }
+
+    private static class MobilePayload {
+
+        private final String imageUrl;
+        private final String offerName;
+        private final String offerContent;
+
+        private MobilePayload(String imageUrl, String offerName, String offerContent) {
+            this.imageUrl = imageUrl;
+            this.offerName = offerName;
+            this.offerContent = offerContent;
+        }
+
+        public String getImageUrl() {
+            return imageUrl;
+        }
+
+        public String getOfferName() {
+            return offerName;
+        }
+
+        public String getOfferContent() {
+            return offerContent;
+        }
+
+    }
     private Integer getMbox3rdPartyId() {
         return getIntent().getExtras().getInt(Constants.MBOX_THIRD_PARTY_ID);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_target_experience, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+        return id == R.id.action_settings || super.onOptionsItemSelected(item);
     }
 
-    private void createTargetExperienceView() {
-        targetExperienceWebView = (WebView) findViewById(R.id.targetExperienceWebView);
-        targetExperienceWebView.setWebViewClient(new WebViewClient());
-
-        targetExperienceWebView.setPadding(0, 0, 0, 0);
-        targetExperienceWebView.setInitialScale(getScale());
+    private void initTargetExperienceView() {
+        experienceImage = (ImageView) findViewById(R.id.experienceImage);
+        offerName = (TextView) findViewById(R.id.offerNameText);
+        offerContent = (TextView) findViewById(R.id.offerContentText);
     }
 
     private Properties getProperties(AssetManager assetManager) throws IOException {
@@ -137,11 +164,4 @@ public class TargetExperience extends Activity {
         return appProperties;
     }
 
-    private int getScale() {
-        DisplayMetrics display = this.getResources().getDisplayMetrics();
-        int width = display.widthPixels;
-        Double val = width / 400D;
-        val = val * 100d;
-        return val.intValue();
-    }
 }
