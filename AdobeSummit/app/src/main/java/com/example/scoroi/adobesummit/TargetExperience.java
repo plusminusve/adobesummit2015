@@ -68,9 +68,10 @@ public class TargetExperience extends Activity {
         final String url = appProperties.getProperty("url");
         String mbox = appProperties.getProperty("mbox");
         String nativeAppMboxParameter = appProperties.getProperty("nativeAppMboxParameter");
+        String nativeAppMboxValue = appProperties.getProperty("nativeAppMboxParameterValue");
 
         Map<String, Object> parameters = new HashMap<>();
-        parameters.put(nativeAppMboxParameter, "true");
+        parameters.put(nativeAppMboxParameter, nativeAppMboxValue);
         parameters.put("mbox3rdPartyId", getMbox3rdPartyId());
         for (Map.Entry<String, Object> parameterEntry : additionalParameters.entrySet()) {
             parameters.put(parameterEntry.getKey(), parameterEntry.getValue());
