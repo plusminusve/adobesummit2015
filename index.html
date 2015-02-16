@@ -158,7 +158,7 @@
 								<!-- Post -->
 									<article class="box post">
 										<header>
-											<h2><a href="#">Take the fast track to <strong>digital marketing</strong>...<br />							
+											<h2><a href="#">Take the fast track to <strong>digital marketing</strong>...<br /></a></h2>
 										</header>
 										<a href="#" class="image featured"><img src="images/cancun_long.jpg" alt="" /></a>
 										<h3>Take it for a spin.</h3>
@@ -312,7 +312,7 @@
 						<h2>Join now! <strong>Sign up for more:</strong></h2>
 					</header>
 					<header style="display: none;" id="thirPartyIdSection">
-						<h2>Awesome! You are in. Your third party id is: <strong id="thirdpartyId">thirdpartyId</strong>
+						<h2>Awesome! You are in. Your third party id is: <strong id="thirdpartyId">thirdpartyId</strong></h2>
 					</header>
 
 					<section id="logoutSection" class="container" style="text-align: center; display: none;">					
@@ -322,31 +322,31 @@
 					</section>
 					
 					<form method="get" action="#" id="loginForm">
-					<div class="row" style="display: none;" id="loginSection">
-						<div class="6u">
-							<section>								
-									<div class="row 50%">
-										<div class="6u">
-											<input name="email" placeholder="Email" type="text" id="email" />
-										</div>
-										<div class="6u">
-											<input name="password" placeholder="Password" type="password" id="password" />
-										</div>
-									</div>									
-								
-							</section>
-						</div>						
-						<div class="6u">
-							<section>
-								<div class="row">
-									<div class="6u">
-										<a href="#" class="form-button-submit button icon">Sign up</a>										
-									</div>									
-								</div>																
-							</section>	
-
-						</div>
-					</div>
+            <div class="container 75%">
+              <div class="row 0%" style="display: none;" id="loginSection">
+                <div class="9u">
+                  <section>
+                    <div class="row 50%">
+                      <div class="6u">
+                        <input name="email" placeholder="Email" type="text" id="email" />
+                      </div>
+                      <div class="6u">
+                        <input name="password" placeholder="Password" type="password" id="password" />
+                      </div>
+                    </div>
+                  </section>
+                </div>
+                <div class="3u">
+                  <section>
+                    <div class="row 0%" style="text-align: center;">
+                      <div class="12u">
+                        <a href="#" class="form-button-submit button icon">Sign up</a>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </div>
+            </div>
 					</form>
 				</div>				
 				<div id="copyright" class="container">
@@ -356,65 +356,68 @@
 				</div>
 			</div>
 
-<script type="text/javascript">
-	function getCookieAndShowLoggedIn() {
-	    var hash = $.cookie('mbox3rdPartyId');
+  <script type="text/javascript">
+    function getCookieAndShowLoggedIn() {
+      var hash = $.cookie('mbox3rdPartyId');
 
-	    if (hash) {
-	        $('#thirdpartyId').text(hash);
-	        $('#loginHeader').hide();
-	        $('#loginSection').hide();	        
-	        $('#logoutSection').show();            
-	        $('#thirPartyIdSection').show();            
-	    } else {
-	    	$('#loginHeader').show();
-	        $('#loginSection').show();
-	        $('#logoutSection').hide()
-	        $('#thirPartyIdSection').hide();            
-	    }
-	}
-
-	function logoutHandler() {
-	  $('#logout').click(function() {
-	    $.removeCookie('mbox3rdPartyId');
-	    getCookieAndShowLoggedIn();
-	    return false;
-	  });
-	}
-
-    function hashCode(s) {
-	    var hash = 0;
-		if (s.length == 0) return hash;
-		for (i = 0; i < s.length; i++) {
-			char = s.charCodeAt(i);
-			hash = ((hash<<5)-hash)+char;
-			hash = hash & hash; // Convert to 32bit integer
-		}
-		return hash;
-    };
-
-     $("#loginForm").submit(function() {
-        var val = $('#email').val();
-        var hash = hashCode(val);
-        $('#email').val("");
-        $('#password').val("");
-
+      if (hash) {
         $('#thirdpartyId').text(hash);
-
         $('#loginHeader').hide();
         $('#loginSection').hide();
-        $('#logoutSection').show()
+        $('#logoutSection').show();
         $('#thirPartyIdSection').show();
+      } else {
+        $('#loginHeader').show();
+        $('#loginSection').show();
+        $('#logoutSection').hide();
+        $('#thirPartyIdSection').hide();
+      }
+    }
 
-        $.cookie('mbox3rdPartyId', hash);        
-
+    function logoutHandler() {
+      $('#logout').click(function() {
+        $.removeCookie('mbox3rdPartyId');
+        getCookieAndShowLoggedIn();
         return false;
-     });
+      });
+    }
 
-     getCookieAndShowLoggedIn();
-     logoutHandler();
-</script>
+    function hashCode(s) {
+      var hash = 0,
+        sLength = s.length;
 
+      if (sLength == 0) {
+        return hash;
+      }
 
-	</body>
+      for (var i = 0; i < sLength; i++) {
+        var char = s.charCodeAt(i);
+        hash = ((hash<<5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+      }
+
+      return hash;
+    }
+
+    $('#loginForm').submit(function() {
+      var emailEl = $('#email'),
+        hash = hashCode(emailEl.val());
+
+      emailEl.val('');
+      $('#password').val('');
+      $('#thirdpartyId').text(hash);
+      $('#loginHeader').hide();
+      $('#loginSection').hide();
+      $('#logoutSection').show();
+      $('#thirPartyIdSection').show();
+
+      $.cookie('mbox3rdPartyId', hash);
+
+      return false;
+   });
+
+   getCookieAndShowLoggedIn();
+   logoutHandler();
+  </script>
+</body>
 </html>
